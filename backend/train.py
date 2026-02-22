@@ -15,7 +15,7 @@ data = {
 df = pd.DataFrame(data)
 
 # Features & target
-X = df[['distance_remaining_km', 'avg_speed', 'traffic_index', 'hour_of_day']]
+X = df[['distance_remaining_km', 'avg_speed', 'traffiio0ukljc_index', 'hour_of_day']]
 y = df['eta_minutes']
 
 # Train model
