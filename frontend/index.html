@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartTransit – Intelligent Public Transport</title>
+    <meta name="description"
+        content="Smart urban mobility platform for Kolkata with live bus tracking, ETA prediction, and intelligent route planning.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Dark Mode Toggle (global) -->
+    <button id="dark-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div id="app">
+        <!-- Landing Page -->
+        <div id="landing-page" class="page active">
+            <div class="landing-hero">
+                <div class="landing-content">
+                    <div class="landing-badge"><i class="fas fa-bus"></i> SmartTransit</div>
+                    <h1>Intelligent Public<br><span class="text-accent">Transport Navigation</span></h1>
+                    <p class="landing-sub">Real-time tracking, smart routing, and seamless ticketing for Kolkata's
+                        public transport network.</p>
+                    <div class="landing-stats">
+                        <div class="stat-item"><span class="stat-num">30+</span><span class="stat-label">Bus
+                                Routes</span></div>
+                        <div class="stat-item"><span class="stat-num">50+</span><span class="stat-label">Bus
+                                Stops</span></div>
+                        <div class="stat-item"><span class="stat-num">Live</span><span
+                                class="stat-label">Tracking</span></div>
+                    </div>
+                </div>
+                <div class="landing-cards">
+                    <div class="role-card" onclick="showPage('passenger-auth')">
+                        <div class="role-icon passenger-icon"><i class="fas fa-user"></i></div>
+                        <h2>Passenger</h2>
+                        <p>Track buses, plan routes, book tickets and find nearest stops.</p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check-circle"></i> Live bus tracking</li>
+                            <li><i class="fas fa-check-circle"></i> Smart route planning</li>
+                            <li><i class="fas fa-check-circle"></i> Digital tickets</li>
+                        </ul>
+                        <button class="btn btn-primary">Continue as Passenger</button>
+                    </div>
+                    <div class="role-card" onclick="showPage('driver-auth')">
+                        <div class="role-icon driver-icon"><i class="fas fa-id-badge"></i></div>
+                        <h2>Driver</h2>
+                        <p>Manage trips, update location, report status in real-time.</p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check-circle"></i> GPS trip tracking</li>
+                            <li><i class="fas fa-check-circle"></i> Crowd reporting</li>
+                            <li><i class="fas fa-check-circle"></i> Delay alerts</li>
+                        </ul>
+                        <button class="btn btn-secondary">Continue as Driver</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passenger Auth -->
+        <div id="passenger-auth" class="page">
+            <div class="auth-container">
+                <button class="back-btn" onclick="showPage('landing-page')"><i class="fas fa-arrow-left"></i>
+                    Back</button>
+                <div class="auth-header">
+                    <div class="auth-icon passenger-icon"><i class="fas fa-user"></i></div>
+                    <h2>Passenger Portal</h2>
+                </div>
+                <div id="p-login-form" class="auth-form">
+                    <input type="email" id="p-login-email" class="input-field" placeholder="Email address">
+                    <input type="password" id="p-login-pass" class="input-field" placeholder="Password">
+                    <button class="btn btn-primary w-full" onclick="passengerLogin()">Login</button>
+                    <div class="auth-divider"><span>or</span></div>
+                    <button class="btn-google" onclick="googleSignIn('passenger')">
+                        <svg viewBox="0 0 48 48" width="20" height="20">
+                            <path fill="#EA4335"
+                                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                            <path fill="#4285F4"
+                                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                            <path fill="#FBBC05"
+                                d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                            <path fill="#34A853"
+                                d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                        </svg>
+                        Continue with Google
+                    </button>
+                    <p class="auth-switch">Don't have an account? <a
+                            onclick="toggleAuthForm('passenger','register')">Register</a></p>
+                </div>
+                <div id="p-register-form" class="auth-form hidden">
+                    <input type="text" id="p-reg-name" class="input-field" placeholder="Full Name">
+                    <input type="email" id="p-reg-email" class="input-field" placeholder="Email address">
+                    <input type="tel" id="p-reg-phone" class="input-field" placeholder="Phone number">
+                    <input type="password" id="p-reg-pass" class="input-field" placeholder="Create password">
+                    <button class="btn btn-primary w-full" onclick="passengerRegister()">Register</button>
+                    <div class="auth-divider"><span>or</span></div>
+                    <button class="btn-google" onclick="googleSignIn('passenger')">
+                        <svg viewBox="0 0 48 48" width="20" height="20">
+                            <path fill="#EA4335"
+                                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                            <path fill="#4285F4"
+                                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                            <path fill="#FBBC05"
+                                d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                            <path fill="#34A853"
+                                d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                        </svg>
+                        Continue with Google
+                    </button>
+                    <p class="auth-switch">Already have an account? <a
+                            onclick="toggleAuthForm('passenger','login')">Login</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Driver Auth -->
+        <div id="driver-auth" class="page">
+            <div class="auth-container">
+                <button class="back-btn" onclick="showPage('landing-page')"><i class="fas fa-arrow-left"></i>
+                    Back</button>
+                <div class="auth-header">
+                    <div class="auth-icon driver-icon"><i class="fas fa-id-badge"></i></div>
+                    <h2>Driver Portal</h2>
+                </div>
+                <div id="d-login-form" class="auth-form">
+                    <input type="email" id="d-login-email" class="input-field" placeholder="Email address">
+                    <input type="password" id="d-login-pass" class="input-field" placeholder="Password">
+                    <button class="btn btn-secondary w-full" onclick="driverLogin()">Login</button>
+                    <div class="auth-divider"><span>or</span></div>
+                    <button class="btn-google" onclick="googleSignIn('driver')">
+                        <svg viewBox="0 0 48 48" width="20" height="20">
+                            <path fill="#EA4335"
+                                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                            <path fill="#4285F4"
+                                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                            <path fill="#FBBC05"
+                                d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                            <path fill="#34A853"
+                                d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                        </svg>
+                        Continue with Google
+                    </button>
+                    <p class="auth-switch">New driver? <a onclick="toggleAuthForm('driver','register')">Register</a></p>
+                </div>
+                <div id="d-register-form" class="auth-form hidden">
+                    <input type="text" id="d-reg-name" class="input-field" placeholder="Full Name">
+                    <input type="email" id="d-reg-email" class="input-field" placeholder="Email address">
+                    <input type="text" id="d-reg-empid" class="input-field" placeholder="Employee ID">
+                    <input type="password" id="d-reg-pass" class="input-field" placeholder="Create password">
+                    <button class="btn btn-secondary w-full" onclick="driverRegister()">Register</button>
+                    <div class="auth-divider"><span>or</span></div>
+                    <button class="btn-google" onclick="googleSignIn('driver')">
+                        <svg viewBox="0 0 48 48" width="20" height="20">
+                            <path fill="#EA4335"
+                                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                            <path fill="#4285F4"
+                                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                            <path fill="#FBBC05"
+                                d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                            <path fill="#34A853"
+                                d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                        </svg>
+                        Continue with Google
+                    </button>
+                    <p class="auth-switch">Already registered? <a onclick="toggleAuthForm('driver','login')">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passenger Dashboard -->
+        <div id="passenger-dashboard" class="page">
+            <div class="dash-header">
+                <div><span class="dash-greeting" id="p-greeting">Hello!</span>
+                    <h2>Dashboard</h2>
+                </div>
+                <button class="btn-icon" onclick="passengerLogout()" title="Logout"><i
+                        class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card" onclick="showPage('live-map-page')">
+                    <div class="fc-icon" style="background:var(--accent)"><i class="fas fa-map-marked-alt"></i></div>
+                    <h3>Live Map</h3>
+                    <p>Track buses in real-time</p>
+                </div>
+                <div class="feature-card" onclick="showPage('nearest-stop-page')">
+                    <div class="fc-icon" style="background:var(--success)"><i class="fas fa-map-pin"></i></div>
+                    <h3>Nearest Stop</h3>
+                    <p>Find closest bus stands</p>
+                </div>
+                <div class="feature-card" onclick="showPage('journey-page')">
+                    <div class="fc-icon" style="background:var(--info)"><i class="fas fa-route"></i></div>
+                    <h3>Plan Journey</h3>
+                    <p>Smart route planning</p>
+                </div>
+                <div class="feature-card" onclick="showPage('crowd-page')">
+                    <div class="fc-icon" style="background:var(--warning)"><i class="fas fa-users"></i></div>
+                    <h3>Crowd Level</h3>
+                    <p>Check bus occupancy</p>
+                </div>
+                <div class="feature-card" onclick="showPage('tickets-page')">
+                    <div class="fc-icon" style="background:#8b5cf6"><i class="fas fa-ticket-alt"></i></div>
+                    <h3>My Tickets</h3>
+                    <p>View & book tickets</p>
+                </div>
+                <div class="feature-card" onclick="showPage('saved-routes-page')">
+                    <div class="fc-icon" style="background:#ec4899"><i class="fas fa-star"></i></div>
+                    <h3>Saved Routes</h3>
+                    <p>Your favorite routes</p>
+                </div>
+                <div class="feature-card" onclick="showPage('eta-page')">
+                    <div class="fc-icon" style="background:#f97316"><i class="fas fa-clock"></i></div>
+                    <h3>ETA Predict</h3>
+                    <p>Arrival time estimate</p>
+                </div>
+                <div class="feature-card" onclick="showPage('ai-chat-page')">
+                    <div class="fc-icon" style="background:#06b6d4"><i class="fas fa-robot"></i></div>
+                    <h3>AI Assistant</h3>
+                    <p>Ask transit questions</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Map Page -->
+        <div id="live-map-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="showPage('passenger-dashboard')"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>Live Bus Map</h2>
+            </div>
+            <div class="search-bar"><input type="text" id="bus-search-input" class="input-field"
+                    placeholder="Search bus by registration..."><button class="btn btn-primary" onclick="findBus()"><i
+                        class="fas fa-search"></i></button></div>
+            <div id="map-info" class="info-bar"></div>
+            <div id="map" style="height:350px;border-radius:12px;margin-top:12px;"></div>
+            <h3 style="margin-top:16px;margin-bottom:8px"><i class="fas fa-bus"
+                    style="color:var(--accent);margin-right:6px"></i>Active Buses</h3>
+            <div id="live-bus-list" class="results-list"></div>
+        </div>
+
+        <!-- Track Bus Page -->
+        <div id="track-bus-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="stopTracking()"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>Track Bus</h2>
+            </div>
+            <div id="track-bus-info" class="card" style="padding:16px;margin-bottom:12px;"></div>
+            <div id="track-map" style="height:400px;border-radius:12px;"></div>
+        </div>
+
+        <!-- Nearest Stop Page -->
+        <div id="nearest-stop-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="showPage('passenger-dashboard')"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>Nearest Bus Stops</h2>
+            </div>
+            <button class="btn btn-primary w-full" onclick="findNearestStops()"><i class="fas fa-crosshairs"></i> Detect
+                My Location</button>
+            <div id="nearest-results" class="results-list"></div>
+        </div>
+
+        <!-- Journey Planner -->
+        <div id="journey-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="showPage('passenger-dashboard')"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>Plan Your Journey</h2>
+            </div>
+            <div class="form-group"><input type="text" id="journey-from" class="input-field"
+                    placeholder="From (e.g. Howrah Station)"><input type="text" id="journey-to" class="input-field"
+                    placeholder="To (e.g. Salt Lake Sector V)"><button class="btn btn-primary w-full"
+                    onclick="planJourney()"><i class="fas fa-search"></i> Find Routes</button></div>
+            <div id="journey-results" class="results-list"></div>
+            <div id="journey-map" style="height:350px;border-radius:12px;margin-top:12px;display:none;"></div>
+        </div>
+
+        <!-- Crowd Level Page -->
+        <div id="crowd-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="showPage('passenger-dashboard')"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>Crowd Levels</h2>
+            </div>
+            <button class="btn btn-primary w-full" onclick="loadCrowdLevels()" style="margin-bottom:12px"><i
+                    class="fas fa-sync-alt"></i> Refresh</button>
+            <div id="crowd-results" class="results-list"></div>
+        </div>
+
+        <!-- Tickets Page -->
+        <div id="tickets-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="showPage('passenger-dashboard')"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>My Tickets</h2>
+            </div>
+            <button class="btn btn-primary" onclick="showBookTicketForm()" style="margin-bottom:12px"><i
+                    class="fas fa-plus"></i> Book Ticket</button>
+            <div id="book-ticket-form" class="card hidden" style="margin-bottom:16px;padding:16px;">
+                <select id="ticket-route" class="input-field">
+                    <option value="">Select Route</option>
+                </select>
+                <input type="text" id="ticket-from" class="input-field" placeholder="From stop">
+                <input type="text" id="ticket-to" class="input-field" placeholder="To stop">
+                <button class="btn btn-primary w-full" onclick="bookTicket()">Book Now</button>
+            </div>
+            <div id="tickets-list" class="results-list"></div>
+        </div>
+
+        <!-- Saved Routes Page -->
+        <div id="saved-routes-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="showPage('passenger-dashboard')"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>Saved Routes</h2>
+            </div>
+            <div class="card" style="padding:16px;margin-bottom:12px;">
+                <input type="text" id="save-name" class="input-field" placeholder="Route name (optional)">
+                <input type="text" id="save-from" class="input-field" placeholder="From">
+                <input type="text" id="save-to" class="input-field" placeholder="To">
+                <button class="btn btn-primary w-full" onclick="saveRoute()"><i class="fas fa-star"></i> Save
+                    Route</button>
+            </div>
+            <div id="saved-list" class="results-list"></div>
+        </div>
+
+        <!-- Smart ETA Page (MVP) -->
+        <div id="eta-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="showPage('passenger-dashboard')"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>🚌 Smart Bus ETA</h2>
+            </div>
+            <div class="card" style="padding:20px;">
+                <p style="color:var(--text2);font-size:0.85rem;margin-bottom:14px">Enter your destination — we'll find
+                    the nearest bus stop, best route, and estimated arrival time.</p>
+                <div class="form-group">
+                    <button class="btn btn-secondary w-full" onclick="detectMyLocation()" id="gps-detect-btn"><i
+                            class="fas fa-crosshairs"></i> Detect My Location</button>
+                    <div id="gps-status" style="font-size:0.8rem;color:var(--text3);text-align:center"></div>
+                    <input type="hidden" id="eta-user-lat">
+                    <input type="hidden" id="eta-user-lng">
+                    <label>Where do you want to go?</label>
+                    <input type="text" id="eta-destination" class="input-field"
+                        placeholder="e.g. Airport, Salt Lake, Howrah...">
+                    <button class="btn btn-primary w-full" onclick="smartETA()"
+                        style="font-size:1.05rem;padding:14px"><i class="fas fa-clock"></i> Get Bus ETA</button>
+                </div>
+            </div>
+            <div id="eta-results" class="results-list" style="margin-top:12px"></div>
+            <div id="eta-map" style="height:300px;border-radius:12px;margin-top:12px;display:none;"></div>
+        </div>
+
+        <!-- AI Chat Page -->
+        <div id="ai-chat-page" class="page">
+            <div class="sub-header"><button class="back-btn" onclick="showPage('passenger-dashboard')"><i
+                        class="fas fa-arrow-left"></i></button>
+                <h2>AI Assistant</h2>
+            </div>
+            <div id="chat-box" class="chat-box"></div>
+            <div class="chat-input-bar"><input type="text" id="chat-input" class="input-field"
+                    placeholder="Ask about routes, stops..." onkeydown="if(event.key==='Enter')sendChat()"><button
+                    class="btn btn-primary" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button></div>
+        </div>
+
+        <!-- Driver Dashboard -->
+        <div id="driver-dashboard" class="page">
+            <div class="dash-header">
+                <div><span class="dash-greeting" id="d-greeting">Hello, Driver!</span>
+                    <h2>Driver Panel</h2>
+                </div>
+                <button class="btn-icon" onclick="driverLogout()" title="Logout"><i
+                        class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <!-- Pre Trip -->
+            <div id="pre-trip" class="card" style="padding:20px;">
+                <h3><i class="fas fa-play-circle"></i> Start a Trip</h3>
+                <div class="form-group">
+                    <select id="d-route" class="input-field">
+                        <option value="">Select Route</option>
+                    </select>
+                    <input type="text" id="d-busreg" class="input-field"
+                        placeholder="Bus Registration Number (e.g. WB-26-1234)">
+                    <button class="btn btn-secondary w-full" onclick="enableGPS()" id="gps-btn"><i
+                            class="fas fa-satellite-dish"></i> Enable GPS</button>
+                    <button class="btn btn-primary w-full" onclick="startTrip()"><i class="fas fa-play"></i> Start
+                        Trip</button>
+                </div>
+            </div>
+            <!-- Live Trip -->
+            <div id="live-trip" class="card hidden" style="padding:20px;">
+                <h3 class="text-accent"><i class="fas fa-broadcast-tower"></i> Trip In Progress</h3>
+                <div class="trip-stats">
+                    <div class="trip-stat"><i class="fas fa-tachometer-alt"></i><span
+                            id="live-speed">0</span><small>km/h</small></div>
+                    <div class="trip-stat"><i class="fas fa-clock"></i><span
+                            id="trip-timer">00:00:00</span><small>Duration</small></div>
+                    <div class="trip-stat"><i class="fas fa-road"></i><span id="trip-dist">0.00</span><small>km</small>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:16px;">
+                    <label>Passenger Count</label>
+                    <div class="counter-row"><button class="btn btn-sm" onclick="adjustCount(-1)">−</button><span
+                            id="pax-count">0</span><button class="btn btn-sm" onclick="adjustCount(1)">+</button><button
+                            class="btn btn-primary btn-sm" onclick="updatePaxCount()">Update</button></div>
+                    <label style="margin-top:12px">Report Issue</label>
+                    <div class="btn-row"><button class="btn btn-warn btn-sm" onclick="reportStatus('delayed')"><i
+                                class="fas fa-exclamation-triangle"></i> Delay</button><button
+                            class="btn btn-danger btn-sm" onclick="reportStatus('breakdown')"><i
+                                class="fas fa-tools"></i> Breakdown</button><button class="btn btn-success btn-sm"
+                            onclick="reportStatus('running')"><i class="fas fa-check"></i> Normal</button></div>
+                </div>
+                <button class="btn btn-danger w-full" onclick="endTrip()" style="margin-top:16px"><i
+                        class="fas fa-stop"></i> End Trip</button>
+            </div>
+            <!-- Post Trip -->
+            <div id="post-trip" class="card hidden" style="padding:20px;text-align:center;">
+                <h3><i class="fas fa-flag-checkered"></i> Trip Complete</h3>
+                <div class="trip-summary">
+                    <p><strong>Duration:</strong> <span id="sum-time">00:00:00</span></p>
+                    <p><strong>Distance:</strong> <span id="sum-dist">0.00</span> km</p>
+                </div>
+                <button class="btn btn-primary w-full" onclick="resetTrip()">Start New Trip</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
