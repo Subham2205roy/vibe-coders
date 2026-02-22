@@ -19,7 +19,12 @@ from sqlalchemy import create_engine, Column, String, Float, Integer, Boolean, D
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
-DATABASE_URL = "sqlite:///./smarttransit.db"
+# Use an absolute path so the app always hits the same SQLite file, no matter
+# where Uvicorn is launched from (root vs backend folder).
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_PATH = os.path.join(BASE_DIR, 'smarttransit.db')
+DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+print(f"DEBUG: Using database at: {DATABASE_PATH}")
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -341,22 +346,30 @@ def get_config():
 # ── Auth ─────────────────────────────────────────────────────────────
 @app.post("/auth/register")
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
-    existing = db.query(UserDB).filter(UserDB.email == req.email).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    user = UserDB(
-        name=req.name,
-        email=req.email,
-        password_hash=hash_password(req.password),
-        role=req.role,
-        phone=req.phone,
-        employee_id=req.employee_id,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    token = create_token({"user_id": user.id, "email": user.email, "role": user.role, "name": user.name})
-    return {"token": token, "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role}}
+    print(f"DEBUG: Registering user {req.email}")
+    try:
+        existing = db.query(UserDB).filter(UserDB.email == req.email).first()
+        if existing:
+            print(f"DEBUG: Email {req.email} already exists.")
+            raise HTTPException(status_code=400, detail="Email already registered")
+        user = UserDB(
+            name=req.name,
+            email=req.email,
+            password_hash=hash_password(req.password),
+            role=req.role,
+            phone=req.phone,
+            employee_id=req.employee_id,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        print(f"DEBUG: User {req.email} registered successfully with ID {user.id}")
+        token = create_token({"user_id": user.id, "email": user.email, "role": user.role, "name": user.name})
+        return {"token": token, "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role}}
+    except Exception as e:
+        print(f"DEBUG: Registration ERROR: {str(e)}")
+        db.rollback()
+        raise e
 
 @app.post("/auth/login")
 def login(req: LoginRequest, db: Session = Depends(get_db)):

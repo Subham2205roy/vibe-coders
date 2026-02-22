@@ -157,10 +157,8 @@ async function passengerRegister() {
         const r = await fetch(`${API}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password: pass, phone, role: 'passenger' }) });
         const d = await r.json();
         if (!r.ok) throw new Error(d.detail || 'Registration failed');
-        authToken = d.token; currentUser = d.user;
-        localStorage.setItem('st_token', authToken);
-        toast('Registration successful!', 'success');
-        showPage('passenger-dashboard');
+        toast('Registration successful! Please login.', 'success');
+        toggleAuthForm('passenger', 'login');
     } catch (e) { toast(e.message, 'error'); }
 }
 
